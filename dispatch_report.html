@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatch Report - BRD Distribution</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- ExcelJS Library for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="dispatch_report.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content branding">
+                <div class="logo-box">
+                    <img src="logo.png" alt="Company Logo" class="logo-img">
+                </div>
+                <div class="title-box">
+                    <h1>BRD DISTRIBUTION</h1>
+                    <span class="subtitle">Dispatch Report</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="back-btn" class="btn btn-secondary">
+                    <i data-lucide="arrow-left"></i> Back to Main
+                </button>
+                <button id="outstanding-btn" class="btn btn-secondary">
+                    <i data-lucide="alert-circle"></i> Outstanding Orders
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Filters Section -->
+            <section class="card filters-section">
+                <h2><i data-lucide="filter"></i> Filters</h2>
+                <div class="filters-grid">
+                    <div class="form-group filter-type-group">
+                        <label>Filter By:</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="filter-type" value="dispatch" checked>
+                                Dispatch Date (when manifest was created)
+                            </label>
+                            <label>
+                                <input type="radio" name="filter-type" value="manifest">
+                                Manifest Date (when invoices were added)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="date-from">Dispatch Date From</label>
+                        <input type="date" id="date-from">
+                    </div>
+                    <div class="form-group">
+                        <label for="date-to">Dispatch Date To</label>
+                        <input type="date" id="date-to">
+                    </div>
+                    <div class="form-group search-group">
+                        <label for="search-input">Global Search</label>
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="search-input"
+                                placeholder="Search invoice, order, manifest, customer, driver, truck, checker...">
+                            <button id="clear-search-btn" class="btn-icon clear-search hidden">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group button-group">
+                        <button id="apply-filters-btn" class="btn btn-primary">
+                            <i data-lucide="search"></i> Apply Filters
+                        </button>
+                        <button id="reset-filters-btn" class="btn btn-secondary">
+                            <i data-lucide="rotate-ccw"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="card results-section">
+                <div class="section-header">
+                    <h2>Dispatched Invoices</h2>
+                    <div class="header-actions">
+                        <span id="results-count" class="results-count">Loading...</span>
+                        <button id="export-excel-btn" class="btn btn-success" disabled>
+                            <i data-lucide="file-spreadsheet"></i> Export to Excel
+                        </button>
+                        <button id="export-pdf-btn" class="btn btn-secondary" disabled>
+                            <i data-lucide="file-text"></i> Export to PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Summary -->
+                <div id="results-summary" class="results-summary hidden">
+                    <p id="results-summary-text">
+                        Showing <strong>1-50</strong> of <strong>100</strong> invoices
+                    </p>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-state" class="loading-state hidden">
+                    <div class="spinner"></div>
+                    <p>Loading dispatch records...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="error-state" class="error-state hidden">
+                    <i data-lucide="alert-triangle"></i>
+                    <h3>Error Loading Data</h3>
+                    <p id="error-message"></p>
+                    <button id="retry-btn" class="btn btn-primary">
+                        <i data-lucide="refresh-cw"></i> Retry
+                    </button>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state hidden">
+                    <i data-lucide="inbox"></i>
+                    <h3>No Dispatched Invoices Found</h3>
+                    <p id="empty-state-message">No dispatched invoices found for the selected date range and filters.
+                        Try adjusting your search criteria or date range.</p>
+                </div>
+
+                <!-- Table Container -->
+                <div id="table-container" class="table-container hidden">
+                    <table id="dispatch-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="invoice_number" class="sortable">
+                                    Invoice #
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="order_number" class="sortable">
+                                    Order #
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="manifest_number" class="sortable">
+                                    Manifest #
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="customer_name" class="sortable">
+                                    Customer Name
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="invoice_date">
+                                    Invoice Date
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="date_dispatched" class="sortable">
+                                    Date Dispatched
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="driver" class="sortable">
+                                    Driver Name
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="assistant">
+                                    Assistant Name
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="reg_number">
+                                    Truck Reg #
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="checker">
+                                    Checker Name
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="dispatch-table-body">
+                            <!-- Rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="pagination-container" class="pagination-container hidden">
+                    <div class="pagination-info">
+                        <span id="pagination-info-text">Showing 1-50 of 100</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="first-page-btn" class="btn btn-icon" disabled>
+                            <i data-lucide="chevrons-left"></i>
+                        </button>
+                        <button id="prev-page-btn" class="btn btn-icon" disabled>
+                            <i data-lucide="chevron-left"></i>
+                        </button>
+                        <div id="page-numbers" class="page-numbers">
+                            <!-- Page numbers will be inserted here -->
+                        </div>
+                        <button id="next-page-btn" class="btn btn-icon">
+                            <i data-lucide="chevron-right"></i>
+                        </button>
+                        <button id="last-page-btn" class="btn btn-icon">
+                            <i data-lucide="chevrons-right"></i>
+                        </button>
+                    </div>
+                    <div class="pagination-size">
+                        <label for="page-size">Per page:</label>
+                        <select id="page-size">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="dispatch_report.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

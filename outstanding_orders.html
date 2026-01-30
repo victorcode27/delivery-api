@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outstanding Orders - BRD Distribution</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="outstanding_orders.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content branding">
+                <div class="logo-box">
+                    <img src="logo.png" alt="Company Logo" class="logo-img">
+                </div>
+                <div class="title-box">
+                    <h1>BRD DISTRIBUTION</h1>
+                    <span class="subtitle">Outstanding Orders</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="back-btn" class="btn btn-secondary">
+                    <i data-lucide="arrow-left"></i> Back to Main
+                </button>
+                <button id="dispatch-report-btn" class="btn btn-secondary">
+                    <i data-lucide="truck"></i> Dispatch Report
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Info Banner -->
+            <div class="info-banner">
+                <i data-lucide="info"></i>
+                <div>
+                    <strong>Outstanding Orders</strong>
+                    <p>These are invoices that have never been added to any dispatch report. They are pending dispatch.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <section class="card results-section">
+                <div class="section-header">
+                    <h2>Outstanding Invoices</h2>
+                    <div class="header-actions">
+                        <span id="results-count" class="results-count">Loading...</span>
+                        <button id="refresh-btn" class="btn btn-primary">
+                            <i data-lucide="refresh-cw"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Optional Client-Side Search -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="search-input"
+                            placeholder="Filter by invoice number, order number, or customer name...">
+                        <button id="clear-search-btn" class="btn-icon clear-search hidden">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-state" class="loading-state hidden">
+                    <div class="spinner"></div>
+                    <p>Loading outstanding orders...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="error-state" class="error-state hidden">
+                    <i data-lucide="alert-triangle"></i>
+                    <h3>Error Loading Data</h3>
+                    <p id="error-message"></p>
+                    <button id="retry-btn" class="btn btn-primary">
+                        <i data-lucide="refresh-cw"></i> Retry
+                    </button>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state hidden">
+                    <i data-lucide="check-circle"></i>
+                    <h3>No Outstanding Invoices</h3>
+                    <p>All invoices have been dispatched. Great work!</p>
+                </div>
+
+                <!-- Table Container -->
+                <div id="table-container" class="table-container hidden">
+                    <table id="outstanding-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="invoice_number" class="sortable">
+                                    Invoice Number
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="order_number" class="sortable">
+                                    Order Number
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="customer_name" class="sortable">
+                                    Customer Name
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                                <th data-sort="invoice_date" class="sortable">
+                                    Invoice Date
+                                    <i data-lucide="chevrons-up-down" class="sort-icon"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="outstanding-table-body">
+                            <!-- Rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Results Info -->
+                <div id="results-info" class="results-info hidden">
+                    <span id="filtered-count"></span>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="outstanding_orders.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

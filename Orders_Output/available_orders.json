@@ -1,0 +1,402 @@
+[
+    {
+        "filename": "BCRN21350-2026-01-21T09_46_30-(QR)-SPINAL AFRICA BCRN21350 Credit Note_20260121_094605.pdf",
+        "date_processed": "2026-01-21 13:26:58",
+        "customer_name": "Pomona Business Park SPINAL",
+        "total_value": "60.26",
+        "invoice_number": "BCRN21350",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "HARARE"
+    },
+    {
+        "filename": "BCRN21351-2026-01-21T09_49_52-(QR)-GAIN METRO MAKONI BCRN21351 Credit Note_20260121_094854.pdf",
+        "date_processed": "2026-01-21 13:26:58",
+        "customer_name": "Corner Samora Machel",
+        "total_value": "60.00",
+        "invoice_number": "BCRN21351",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "HARARE"
+    },
+    {
+        "filename": "BINV8077-2026-01-20T10_36_28-(QR)-PNP GWERU BINV8077.pdf",
+        "date_processed": "2026-01-21 13:26:58",
+        "customer_name": "PNP GWERU MEGAWATT",
+        "total_value": "154.08",
+        "invoice_number": "BINV8077",
+        "order_number": "186686",
+        "invoice_date": "2026-01-20",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8079-2026-01-20T10_41_17-(QR)-PIZZA INN 8TH BINV8079.pdf",
+        "date_processed": "2026-01-21 13:26:58",
+        "customer_name": "PIZZA INN 8TH",
+        "total_value": "100.00",
+        "invoice_number": "BINV8079",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-20",
+        "area": "BULAWAYO"
+    },
+    {
+        "filename": "BINV8087-2026-01-20T11_06_28-(QR)-PNP GWERU BINV8087.pdf",
+        "date_processed": "2026-01-21 13:26:58",
+        "customer_name": "PNP GWERU MEGA",
+        "total_value": "457.25",
+        "invoice_number": "BINV8087",
+        "order_number": "186425",
+        "invoice_date": "2026-01-20",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8088-2026-01-20T11_09_48-(QR)-PNP MUTARE BINV8088.pdf",
+        "date_processed": "2026-01-21 13:26:59",
+        "customer_name": "PNP MUTARE",
+        "total_value": "457.25",
+        "invoice_number": "BINV8088",
+        "order_number": "205633",
+        "invoice_date": "2026-01-20",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8091-2026-01-20T11_27_38-(QR)-TM LOBENGULA BINV8091.pdf",
+        "date_processed": "2026-01-21 13:26:59",
+        "customer_name": "TM LOBENGULA",
+        "total_value": "1,278.80",
+        "invoice_number": "BINV8091",
+        "order_number": "125328",
+        "invoice_date": "2026-01-20",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8093-2026-01-20T11_35_58-(QR)-METRO MUTARE 2 BINV893.pdf",
+        "date_processed": "2026-01-21 13:26:59",
+        "customer_name": "METRO MUTARE 2",
+        "total_value": "620.17",
+        "invoice_number": "BINV8093",
+        "order_number": "1004949",
+        "invoice_date": "2026-01-20",
+        "area": "BLOCK"
+    },
+    {
+        "filename": "BINV8125-2026-01-21T07_03_30-(QR)-CATERWISE BINV8125.pdf",
+        "date_processed": "2026-01-21 13:27:00",
+        "customer_name": "CATERWISE",
+        "total_value": "3,658.68",
+        "invoice_number": "BINV8125",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8126-2026-01-21T07_07_11-(QR)-THE BRIDGE SPAR BINV8126.pdf",
+        "date_processed": "2026-01-21 13:27:00",
+        "customer_name": "THE BRIDGE SPAR",
+        "total_value": "418.58",
+        "invoice_number": "BINV8126",
+        "order_number": "325501",
+        "invoice_date": "2026-01-21",
+        "area": "MOUNT"
+    },
+    {
+        "filename": "BINV8127-2026-01-21T07_11_44-(QR)-THE BRIDGE SPAR BINV8127.pdf",
+        "date_processed": "2026-01-21 13:27:00",
+        "customer_name": "THE BRIDGE SPAR",
+        "total_value": "4,210.50",
+        "invoice_number": "BINV8127",
+        "order_number": "320097",
+        "invoice_date": "2026-01-21",
+        "area": "MOUNT"
+    },
+    {
+        "filename": "BINV8128-2026-01-21T07_15_07-(QR)-TM CHIKANGA BINV8128.pdf",
+        "date_processed": "2026-01-21 13:27:00",
+        "customer_name": "TM CHIKANGA",
+        "total_value": "258.70",
+        "invoice_number": "BINV8128",
+        "order_number": "135181",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8129-2026-01-21T07_18_40-(QR)-PNP BORROWDALE BINV8129.pdf",
+        "date_processed": "2026-01-21 13:27:01",
+        "customer_name": "PNP BORROWDALE",
+        "total_value": "1,499.10",
+        "invoice_number": "BINV8129",
+        "order_number": "451492",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8130-2026-01-21T07_19_13-(QR)-TM CHIKANGA BINV8130.pdf",
+        "date_processed": "2026-01-21 13:27:01",
+        "customer_name": "TM CHIKANGA",
+        "total_value": "511.52",
+        "invoice_number": "BINV8130",
+        "order_number": "135181",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8131-2026-01-21T07_20_36-(QR)-TM FIFE BINV8131.pdf",
+        "date_processed": "2026-01-21 13:27:01",
+        "customer_name": "TM FIFE STREET",
+        "total_value": "285.50",
+        "invoice_number": "BINV8131",
+        "order_number": "196423",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8132-2026-01-21T07_23_53-(QR)-PNP RUSAPE BINV8132.pdf",
+        "date_processed": "2026-01-21 13:27:01",
+        "customer_name": "PNP RUSAPE",
+        "total_value": "623.70",
+        "invoice_number": "BINV8132",
+        "order_number": "153220",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8133-2026-01-21T07_25_03-(QR)-PNP RUSAPE BINV8133.pdf",
+        "date_processed": "2026-01-21 13:27:01",
+        "customer_name": "PNP RUSAPE",
+        "total_value": "258.70",
+        "invoice_number": "BINV8133",
+        "order_number": "153220",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8146-2026-01-21T08_29_25-(QR)-PNP HIGHLANDS BINV8146.pdf",
+        "date_processed": "2026-01-21 13:27:02",
+        "customer_name": "PNP HIGHLANDS",
+        "total_value": "767.40",
+        "invoice_number": "BINV8146",
+        "order_number": "92164",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8147-2026-01-21T08_30_05-(QR)-MARSHDEL BINV8147.pdf",
+        "date_processed": "2026-01-21 13:27:02",
+        "customer_name": "MARSHDEL",
+        "total_value": "9,415.00",
+        "invoice_number": "BINV8147",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "TIN:"
+    },
+    {
+        "filename": "BINV8148-2026-01-21T08_46_50-(QR)-LAPARADA BINV8148.pdf",
+        "date_processed": "2026-01-21 13:27:02",
+        "customer_name": "LAPARADA",
+        "total_value": "1,181.08",
+        "invoice_number": "BINV8148",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "HARARE"
+    },
+    {
+        "filename": "BINV8149-2026-01-21T08_47_11-(QR)-MEGASAVE MVURWI BINV8149.pdf",
+        "date_processed": "2026-01-21 13:27:03",
+        "customer_name": "MEGASAVE MVURWI",
+        "total_value": "1,883.00",
+        "invoice_number": "BINV8149",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "HIGHLANDS"
+    },
+    {
+        "filename": "BINV8150-2026-01-21T08_49_25-(QR)-MUKANYA BINV8150.pdf",
+        "date_processed": "2026-01-21 13:27:03",
+        "customer_name": "MUKANYA",
+        "total_value": "9,415.00",
+        "invoice_number": "BINV8150",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "HARARE"
+    },
+    {
+        "filename": "BINV8151-2026-01-21T08_53_15-(QR)-PNP HIGHLANDS BINV8151.pdf",
+        "date_processed": "2026-01-21 13:27:03",
+        "customer_name": "PNP HIGHLANDS",
+        "total_value": "155.22",
+        "invoice_number": "BINV8151",
+        "order_number": "92163",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8152-2026-01-21T08_57_16-(QR)-PNP HIGHLANDS BINV8152.pdf",
+        "date_processed": "2026-01-21 13:27:03",
+        "customer_name": "PNP HIGHLANDS",
+        "total_value": "316.20",
+        "invoice_number": "BINV8152",
+        "order_number": "92163",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8153-2026-01-21T09_02_53-(QR)-PNP HIGHLANDS BINV8153.pdf",
+        "date_processed": "2026-01-21 13:27:04",
+        "customer_name": "PNP HIGHLANDS",
+        "total_value": "31.04",
+        "invoice_number": "BINV8153",
+        "order_number": "92163",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8154-2026-01-21T09_12_12-(QR)-PNP SIMON MAZORODZE BINV8154.pdf",
+        "date_processed": "2026-01-21 13:27:04",
+        "customer_name": "PNP SIMON MAZORODZE",
+        "total_value": "603.72",
+        "invoice_number": "BINV8154",
+        "order_number": "67681",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8155-2026-01-21T09_13_46-(QR)-SMOKEHOUSE GREENFIELDS BINV8155.pdf",
+        "date_processed": "2026-01-21 13:27:04",
+        "customer_name": "SMOKEHOUSE GREENFIELDS",
+        "total_value": "506.10",
+        "invoice_number": "BINV8155",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "BELVEDERE"
+    },
+    {
+        "filename": "BINV8156-2026-01-21T09_15_04-(QR)-PNP SIMON MAZORODZE BINV8156.pdf",
+        "date_processed": "2026-01-21 13:27:04",
+        "customer_name": "PNP SIMON MAZORODZE",
+        "total_value": "66.90",
+        "invoice_number": "BINV8156",
+        "order_number": "67681",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8157-2026-01-21T09_15_35-(QR)-SPURS HIGHLANDS PARK BINV8157.pdf",
+        "date_processed": "2026-01-21 13:27:05",
+        "customer_name": "SPURS HIGHLANDS PARK",
+        "total_value": "118.12",
+        "invoice_number": "BINV8157",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "AVENUES"
+    },
+    {
+        "filename": "BINV8158-2026-01-21T09_30_46-(QR)-PNP BRADFIELD BINV8158.pdf",
+        "date_processed": "2026-01-21 13:27:05",
+        "customer_name": "PNP BRADFIELD",
+        "total_value": "288.27",
+        "invoice_number": "BINV8158",
+        "order_number": "322975",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8159-2026-01-21T09_34_51-(QR)-PNP SIMON MAZORODZE BINV8159.pdf",
+        "date_processed": "2026-01-21 13:27:05",
+        "customer_name": "PNP SIMON MAZORODZE",
+        "total_value": "353.96",
+        "invoice_number": "BINV8159",
+        "order_number": "67681",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8160-2026-01-21T09_36_40-(QR)-PNP BRADFIELD BINV8160.pdf",
+        "date_processed": "2026-01-21 13:27:05",
+        "customer_name": "PNP BRADFIELD",
+        "total_value": "281.20",
+        "invoice_number": "BINV8160",
+        "order_number": "322975",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8161-2026-01-21T09_41_40-(QR)-tm hyper binv8161.pdf",
+        "date_processed": "2026-01-21 13:27:06",
+        "customer_name": "TM HYPER",
+        "total_value": "132.06",
+        "invoice_number": "BINV8161",
+        "order_number": "269688",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8162-2026-01-21T09_45_25-(QR)-PNP MASVINGO BINV8162.pdf",
+        "date_processed": "2026-01-21 13:27:06",
+        "customer_name": "PNP MASVINGO",
+        "total_value": "173.43",
+        "invoice_number": "BINV8162",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8163-2026-01-21T09_47_40-(QR)-PNP MASVINGO BINV8163.pdf",
+        "date_processed": "2026-01-21 13:27:06",
+        "customer_name": "PNP MASVINGO",
+        "total_value": "2,088.00",
+        "invoice_number": "BINV8163",
+        "order_number": "N/A",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8164-2026-01-21T09_48_48-(QR)-PNP SIMON MAZORODZE BINV8164.pdf",
+        "date_processed": "2026-01-21 13:27:06",
+        "customer_name": "PNP SIMON MAZORODZE",
+        "total_value": "2,420.12",
+        "invoice_number": "BINV8164",
+        "order_number": "68247",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8165-2026-01-21T09_49_22-(QR)-PNP CHIVHU BINV8165.pdf",
+        "date_processed": "2026-01-21 13:27:07",
+        "customer_name": "PNP CHIVHU",
+        "total_value": "571.00",
+        "invoice_number": "BINV8165",
+        "order_number": "123638",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "BINV8166-2026-01-21T09_51_24-(QR)-PNP CHIVHU BINV8166.pdf",
+        "date_processed": "2026-01-21 13:27:07",
+        "customer_name": "PNP CHIVHU",
+        "total_value": "691.92",
+        "invoice_number": "BINV8166",
+        "order_number": "123638",
+        "invoice_date": "2026-01-21",
+        "area": "MSASA"
+    },
+    {
+        "filename": "REPRINT-BINV8141-2026-01-21T08_47_31-(QR)-TM COWDRY PARK BINV8141.pdf",
+        "date_processed": "2026-01-21 13:27:07",
+        "customer_name": "TM COWDRY PARK",
+        "total_value": "255.76",
+        "invoice_number": "BINV8141",
+        "order_number": "100762",
+        "invoice_date": "2026-01-21",
+        "area": "MUTARE"
+    },
+    {
+        "filename": "test_invoice_001.pdf",
+        "date_processed": "2026-01-21 13:27:07",
+        "customer_name": "Unknown",
+        "total_value": "0.00",
+        "invoice_number": "N/A",
+        "order_number": "N/A",
+        "invoice_date": "N/A",
+        "area": "UNKNOWN"
+    }
+]

@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Manifest System</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- ExcelJS Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content branding">
+                <div class="logo-box">
+                    <img src="logo.png" alt="Company Logo" class="logo-img">
+                </div>
+                <div class="title-box">
+                    <h1>BRD DISTRIBUTION</h1>
+                    <span class="subtitle">Delivery Manifest System</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="settings-btn" class="btn btn-secondary">
+                    <i data-lucide="settings"></i> Settings
+                </button>
+                <button id="dispatch-report-btn" class="btn btn-secondary">
+                    <i data-lucide="truck"></i> Dispatch Report
+                </button>
+                <button id="outstanding-orders-btn" class="btn btn-secondary">
+                    <i data-lucide="alert-circle"></i> Outstanding Orders
+                </button>
+                <button id="view-reports-btn" class="btn btn-secondary">
+                    <i data-lucide="file-bar-chart-2"></i> View Reports
+                </button>
+                <button id="reset-btn" class="btn btn-danger">
+                    <i data-lucide="refresh-cw"></i> Reset System
+                </button>
+                <button id="logout-btn" class="btn btn-secondary">
+                    <i data-lucide="log-out"></i> Logout
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Header Information Section -->
+            <section class="card form-section">
+                <h2><i data-lucide="file-spreadsheet"></i> Route Details</h2>
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label for="manifest-number">Manifest Number</label>
+                        <input type="text" id="manifest-number" readonly class="auto-generated">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-number">Registration #</label>
+                        <select id="reg-number">
+                            <option value="">Select Truck</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="align-self: end;">
+                        <button id="load-invoices-btn" class="btn btn-primary" type="button">
+                            <i data-lucide="file-search"></i> Load Invoices
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid-form three-col">
+                    <div class="form-group">
+                        <label for="driver">Driver Name</label>
+                        <select id="driver">
+                            <option value="">Select Driver</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="assistant">Assistant Name</label>
+                        <select id="assistant">
+                            <option value="">Select Assistant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="checker">Checker Name</label>
+                        <select id="checker">
+                            <option value="">Select Checker</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-form four-col">
+                    <div class="form-group">
+                        <label for="pallets-brown">Pallets (Brown)</label>
+                        <input type="number" id="pallets-brown" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="pallets-blue">Pallets (Blue)</label>
+                        <input type="number" id="pallets-blue" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="crates">Crates</label>
+                        <input type="number" id="crates" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="mileage">Mileage</label>
+                        <input type="number" id="mileage" value="0">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Order Section -->
+            <section class="card form-section">
+                <h2><i data-lucide="package-plus"></i> Add Invoice / Order</h2>
+                <div class="grid-form">
+                    <div class="form-group">
+                        <label for="invoice-number">Invoice #</label>
+                        <input type="text" id="invoice-number" placeholder="Invoice Number">
+                    </div>
+                    <div class="form-group">
+                        <label for="order-number-manual">Order #</label>
+                        <input type="text" id="order-number-manual" placeholder="Order Number">
+                    </div>
+                    <div class="form-group">
+                        <label for="invoice-date-manual">Invoice Date</label>
+                        <input type="date" id="invoice-date-manual">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-name">Customer Name</label>
+                        <input type="text" id="customer-name" placeholder="Customer Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="order-area">Area</label>
+                        <input type="text" id="order-area" placeholder="e.g. AVONDALE">
+                    </div>
+                </div>
+                <div class="grid-form four-col">
+                    <div class="form-group">
+                        <label for="sku">SKU</label>
+                        <input type="number" id="sku" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="value">Value ($)</label>
+                        <input type="number" id="order-value" value="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="weight">Weight (kg)</label>
+                        <input type="number" id="weight" value="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="volume">Volume</label>
+                        <input type="number" id="volume" value="0" step="0.01">
+                    </div>
+                </div>
+                <div class="button-row">
+                    <button id="add-order-btn" class="btn btn-primary">
+                        <i data-lucide="plus"></i> Add to Manifest
+                    </button>
+                    <button id="load-invoices-btn-2" class="btn btn-secondary">
+                        <i data-lucide="file-search"></i> Load Invoices from System
+                    </button>
+                </div>
+            </section>
+
+            <!-- Manifest Preview Section -->
+            <section class="card preview-section">
+                <div class="section-header">
+                    <h2>Current Manifest</h2>
+                    <span class="badge" id="order-count">0 Invoices</span>
+                </div>
+
+                <div class="table-container">
+                    <table id="manifest-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Customer</th>
+                                <th>Area</th>
+                                <th>SKU</th>
+                                <th>Value</th>
+                                <th>Weight</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be added here dynamically -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="3">Grand Total</td>
+                                <td id="total-sku">0</td>
+                                <td id="total-value">$0.00</td>
+                                <td id="total-weight">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="actions-bar">
+                    <button id="print-btn" class="btn btn-success large">
+                        <i data-lucide="file-check"></i> Process Manifest
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Dispatch Report Modal -->
+        <div id="reports-modal" class="modal hidden">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2><i data-lucide="file-bar-chart-2"></i> Dispatch Report</h2>
+                    <button id="close-modal-btn" class="btn-icon"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="date-range-controls">
+                        <div class="date-range-group">
+                            <div class="form-group">
+                                <label for="report-date-from">From Date</label>
+                                <input type="date" id="report-date-from">
+                            </div>
+                            <div class="form-group">
+                                <label for="report-date-to">To Date</label>
+                                <input type="date" id="report-date-to">
+                            </div>
+                            <div class="form-group">
+                                <label for="report-route-filter">Route</label>
+                                <select id="report-route-filter">
+                                    <option value="">All Routes</option>
+                                </select>
+                            </div>
+                            <button id="filter-btn" class="btn btn-primary">
+                                <i data-lucide="search"></i> Generate Report
+                            </button>
+                        </div>
+                    </div>
+                    <div class="report-view-toggle">
+                        <button id="view-dispatched-btn" class="btn btn-secondary active">
+                            <i data-lucide="truck"></i> Dispatched Orders
+                        </button>
+                        <button id="view-outstanding-btn" class="btn btn-secondary">
+                            <i data-lucide="alert-circle"></i> Outstanding Orders
+                        </button>
+                    </div>
+                    <div id="report-summary" class="report-summary hidden">
+                        <!-- Summary will be inserted here -->
+                    </div>
+                    <div class="search-filter-container">
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="report-search"
+                                placeholder="Search by invoice number or customer name...">
+                            <button id="clear-search-btn" class="btn-icon clear-search hidden">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="reports-table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Order #</th>
+                                    <th>Manifest #</th>
+                                    <th>Truck Reg</th>
+                                    <th>Customer Name</th>
+                                    <th>Customer #</th>
+                                    <th>Invoice Date</th>
+                                    <th>Date Dispatched</th>
+                                    <th>Driver Name</th>
+                                    <th>Driver Assistant</th>
+                                    <th>Checker Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-list">
+                                <!-- Reports loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <span id="report-count">0 invoices found</span>
+                    <div class="action-buttons">
+
+                        <button id="export-report-btn" class="btn btn-success">
+                            <i data-lucide="file-spreadsheet"></i> Export to Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Invoice Selection Modal -->
+    <div id="invoice-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i data-lucide="file-stack"></i> Available Invoices</h2>
+                <button id="close-invoice-modal-btn" class="btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-info">
+                    <span id="invoice-area-label">Area: All</span>
+                    <div class="invoice-filter-group">
+                        <label for="invoice-route-filter">Route:</label>
+                        <select id="invoice-route-filter">
+                            <option value="">All Routes</option>
+                        </select>
+                    </div>
+                    <button id="refresh-invoices-btn" class="btn btn-secondary">
+                        <i data-lucide="refresh-cw"></i> Refresh
+                    </button>
+                </div>
+                <div class="search-filter-container">
+                    <div class="search-input-wrapper">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="invoice-search" placeholder="Search by Invoice, Order # or Customer...">
+                        <button id="clear-invoice-search-btn" class="btn-icon clear-search hidden">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="invoice-select-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all-invoices"></th>
+                                <th>Invoice #</th>
+                                <th>Order #</th>
+                                <th>Invoice Date</th>
+                                <th>Customer</th>
+                                <th>Total Value</th>
+                                <th>Date Processed</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-select-list">
+                            <!-- Invoices loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-actions">
+                    <span id="selected-count">0 selected</span>
+                    <button id="add-selected-btn" class="btn btn-primary">
+                        <i data-lucide="plus"></i> Add Selected to Manifest
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manifest Preview Modal -->
+    <div id="preview-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i data-lucide="file-check"></i> Manifest Preview</h2>
+                <button id="close-preview-modal-btn" class="btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-section">
+                    <h3>Manifest Details</h3>
+                    <div class="preview-grid">
+                        <div class="preview-item">
+                            <span class="preview-label">Manifest Number:</span>
+                            <span class="preview-value" id="preview-manifest-number"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Date:</span>
+                            <span class="preview-value" id="preview-date"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Registration #:</span>
+                            <span class="preview-value" id="preview-reg-number"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Driver:</span>
+                            <span class="preview-value" id="preview-driver"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Assistant:</span>
+                            <span class="preview-value" id="preview-assistant"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Checker:</span>
+                            <span class="preview-value" id="preview-checker"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Mileage:</span>
+                            <span class="preview-value" id="preview-mileage"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Pallets (Brown):</span>
+                            <span class="preview-value" id="preview-pallets-brown"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Pallets (Blue):</span>
+                            <span class="preview-value" id="preview-pallets-blue"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Crates:</span>
+                            <span class="preview-value" id="preview-crates"></span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Number of Invoices:</span>
+                            <span class="preview-value" id="preview-invoice-count"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-section">
+                    <h3>Invoice List</h3>
+                    <div class="table-container">
+                        <table id="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice</th>
+                                    <th>Customer</th>
+                                    <th>Area</th>
+                                    <th>SKU</th>
+                                    <th>Value</th>
+                                    <th>Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody id="preview-orders-list">
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="3">Grand Total</td>
+                                    <td id="preview-total-sku">0</td>
+                                    <td id="preview-total-value">$0.00</td>
+                                    <td id="preview-total-weight">0</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-print-btn" class="btn btn-secondary">
+                    <i data-lucide="x"></i> Cancel
+                </button>
+                <button id="confirm-print-btn" class="btn btn-success">
+                    <i data-lucide="printer"></i> Confirm & Print Manifest
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content modal-medium">
+            <div class="modal-header">
+                <h2><i data-lucide="settings"></i> Settings</h2>
+                <button id="close-settings-modal-btn" class="btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body settings-body">
+                <!-- Settings Tabs -->
+                <div class="settings-tabs">
+                    <button class="settings-tab active" data-tab="drivers">Drivers</button>
+                    <button class="settings-tab" data-tab="assistants">Assistants</button>
+                    <button class="settings-tab" data-tab="checkers">Checkers</button>
+                    <button class="settings-tab" data-tab="routes">Routes/Areas</button>
+                    <button class="settings-tab" data-tab="customerRoutes">Customer Routes</button>
+                    <button class="settings-tab" data-tab="trucks">Trucks</button>
+                    <button class="settings-tab" data-tab="users" id="tab-btn-users">Users</button>
+                </div>
+
+                <!-- Tab Content: Drivers -->
+                <div class="settings-tab-content active" id="tab-drivers">
+                    <div class="settings-add-form">
+                        <input type="text" id="new-driver-name" placeholder="Enter driver name">
+                        <button id="add-driver-btn" class="btn btn-primary">
+                            <i data-lucide="plus"></i> Add
+                        </button>
+                    </div>
+                    <div class="settings-list" id="drivers-list">
+                        <!-- Drivers will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Assistants -->
+                <div class="settings-tab-content" id="tab-assistants">
+                    <div class="settings-add-form">
+                        <input type="text" id="new-assistant-name" placeholder="Enter assistant name">
+                        <button id="add-assistant-btn" class="btn btn-primary">
+                            <i data-lucide="plus"></i> Add
+                        </button>
+                    </div>
+                    <div class="settings-list" id="assistants-list">
+                        <!-- Assistants will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Checkers -->
+                <div class="settings-tab-content" id="tab-checkers">
+                    <div class="settings-add-form">
+                        <input type="text" id="new-checker-name" placeholder="Enter checker name">
+                        <button id="add-checker-btn" class="btn btn-primary">
+                            <i data-lucide="plus"></i> Add
+                        </button>
+                    </div>
+                    <div class="settings-list" id="checkers-list">
+                        <!-- Checkers will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Routes/Areas -->
+                <div class="settings-tab-content" id="tab-routes">
+                    <div class="settings-add-form">
+                        <input type="text" id="new-route-name" placeholder="Enter route/area name">
+                        <button id="add-route-btn" class="btn btn-primary">
+                            <i data-lucide="plus"></i> Add
+                        </button>
+                    </div>
+                    <div class="settings-list" id="routes-list">
+                        <!-- Routes will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Customer Routes -->
+                <div class="settings-tab-content" id="tab-customerRoutes">
+                    <div class="settings-info-text">
+                        <i data-lucide="info"></i>
+                        <span>Assign customers to routes. Invoices will be filtered based on these assignments.</span>
+                    </div>
+                    <div class="settings-add-form customer-route-form">
+                        <input type="text" id="new-customer-name" placeholder="Customer name"
+                            list="customer-suggestions">
+                        <datalist id="customer-suggestions"></datalist>
+                        <select id="new-customer-route">
+                            <option value="">Select Route</option>
+                        </select>
+                        <button id="add-customer-route-btn" class="btn btn-primary">
+                            <i data-lucide="plus"></i> Assign
+                        </button>
+                    </div>
+                    <div class="settings-list" id="customer-routes-list">
+                        <!-- Customer-Route assignments will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Trucks -->
+                <div class="settings-tab-content" id="tab-trucks">
+                    <div class="settings-add-form truck-form">
+                        <input type="text" id="new-truck-reg" placeholder="Registration #">
+                        <select id="new-truck-driver">
+                            <option value="">Default Driver (optional)</option>
+                        </select>
+                        <select id="new-truck-assistant">
+                            <option value="">Default Assistant (optional)</option>
+                        </select>
+                        <select id="new-truck-checker">
+                            <option value="">Default Checker (optional)</option>
+                        </select>
+                        <button id="add-truck-btn" class="btn btn-primary">
+                            <i data-lucide="plus"></i> Add
+                        </button>
+                    </div>
+                    <div class="settings-list" id="trucks-list">
+                        <!-- Trucks will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Users (Admin Only) -->
+                <div class="settings-tab-content" id="tab-users">
+                    <div class="settings-info-text">
+                        <i data-lucide="info"></i>
+                        <span>Manage application users. Grant 'Manifest' access to allow creating manifests.</span>
+                    </div>
+                    <!-- Added Migration UI here for Admin convenience -->
+                    <div class="settings-group"
+                        style="margin-bottom: 2rem; padding: 1rem; background: #eff6ff; border-radius: 8px; border: 1px solid #dbeafe;">
+                        <h4 style="margin-top: 0; color: #1e40af;">System Data Sync</h4>
+                        <p style="font-size: 0.9em; margin-bottom: 1rem; color: #1e3a8a;">
+                            Upload your local settings and history to the server so other computers can see them.
+                            Running this multiple times is safe (it checks for duplicates).
+                        </p>
+                        <button id="migrate-btn" class="btn btn-primary" onclick="migrateLocalData()"
+                            style="width: 100%;">
+                            <i data-lucide="upload-cloud"></i> Sync Local Data to Server
+                        </button>
+                        <div id="migration-status" style="margin-top: 10px; font-weight: bold; font-size: 0.9em;"></div>
+                    </div>
+
+                    <div class="settings-add-form customer-route-form">
+                        <input type="text" id="new-user-name" placeholder="Username" style="flex: 1;">
+                        <input type="text" id="new-user-password" placeholder="Password" style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="new-user-manifest" style="width: auto;">
+                            <label for="new-user-manifest" style="margin-bottom: 0;">Manifest Access</label>
+                        </div>
+                        <button id="add-user-btn" class="btn btn-primary">
+                            <i data-lucide="plus"></i> Add User
+                        </button>
+                    </div>
+                    <div class="settings-list" id="users-list">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <span class="settings-hint">Changes are saved automatically</span>
+                <button id="close-settings-btn" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+
+        <!-- Manual Entry / Restore Modal -->
+        <div id="manual-entry-modal" class="modal hidden">
+            <div class="modal-content modal-medium">
+                <div class="modal-header">
+                    <h2><i data-lucide="keyboard"></i> Manual Entry / Restore</h2>
+                    <button id="close-manual-modal-btn" class="btn-icon"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabs -->
+                    <div class="settings-tabs">
+                        <button class="settings-tab active" id="tab-manual-entry-btn">Manual Entry</button>
+                        <button class="settings-tab" id="tab-restore-history-btn">Restore History</button>
+                    </div>
+
+                    <!-- Manual Entry Form -->
+                    <div id="manual-entry-view" class="active">
+                        <div class="alert-box info">
+                            <i data-lucide="info"></i>
+                            <span>Use this to add an invoice that wasn't scanned automatically.</span>
+                        </div>
+                        <div class="grid-form">
+                            <div class="form-group">
+                                <label for="manual-invoice-number">Invoice Number *</label>
+                                <input type="text" id="manual-invoice-number" placeholder="e.g. INV12345">
+                            </div>
+                            <div class="form-group">
+                                <label for="manual-order-number">Order Number *</label>
+                                <input type="text" id="manual-order-number" placeholder="e.g. ORD9876">
+                            </div>
+                            <div class="form-group">
+                                <label for="manual-customer-name">Customer Name *</label>
+                                <input type="text" id="manual-customer-name" placeholder="e.g. SHOPRITE">
+                            </div>
+                            <div class="form-group">
+                                <label for="manual-customer-number">Customer Account #</label>
+                                <input type="text" id="manual-customer-number" placeholder="e.g. C12345">
+                            </div>
+                            <div class="form-group">
+                                <label for="manual-total-value">Total Value *</label>
+                                <input type="number" id="manual-total-value" placeholder="0.00" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="manual-area">Area</label>
+                                <input type="text" id="manual-area" placeholder="Optional">
+                            </div>
+                        </div>
+                        <div class="modal-actions" style="justify-content: flex-end; margin-top: 1rem;">
+                            <button id="submit-manual-entry-btn" class="btn btn-primary">
+                                <i data-lucide="plus"></i> Add Invoice
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Restore History View -->
+                    <div id="restore-history-view" class="hidden">
+                        <div class="alert-box info">
+                            <i data-lucide="info"></i>
+                            <span>Search for dispatched invoices to put back into the pending list.</span>
+                        </div>
+
+                        <div class="search-input-wrapper" style="margin-bottom: 1rem;">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="restore-search-input"
+                                placeholder="Search by Invoice, Manifest, or Customer...">
+                        </div>
+
+                        <div class="table-container" style="max-height: 300px;">
+                            <table id="restore-table">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="restore-select-all"></th>
+                                        <th>Invoice #</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="restore-list">
+                                    <!-- Results go here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button id="restore-btn" class="btn btn-primary" disabled>
+                                <i data-lucide="rotate-ccw"></i> Restore Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Landing Page Overlay -->
+    <div id="landing-overlay" class="landing-overlay">
+        <div class="landing-content">
+            <div class="landing-logo">
+                <img src="logo.png" alt="BRD Distribution">
+            </div>
+            <h1>Welcome to Delivery Manifest System</h1>
+            <p>Please select an option to continue</p>
+
+            <div class="landing-actions">
+                <div class="landing-card" id="landing-manifest-btn">
+                    <div class="icon-box">
+                        <i data-lucide="truck"></i>
+                    </div>
+                    <h3>Delivery Manifest</h3>
+                    <p>Create and manage delivery manifests. (Admin Only)</p>
+                </div>
+
+                <div class="landing-card" id="landing-report-btn">
+                    <div class="icon-box">
+                        <i data-lucide="file-bar-chart-2"></i>
+                    </div>
+                    <h3>View Reports</h3>
+                    <p>View historical dispatch reports.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="login-modal" class="modal hidden" style="z-index: 10001;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2><i data-lucide="lock"></i> User Login</h2>
+                <button id="close-login-btn" class="btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" placeholder="Username" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+                    <p id="login-error" class="error-text hidden">Incorrect username or password</p>
+                    <p id="access-error" class="error-text hidden">Access denied for this area</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="login-submit-btn" class="btn btn-primary full-width">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options Modal -->
+    <div id="export-options-modal" class="modal hidden" style="z-index: 10002;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2><i data-lucide="share"></i> Export Options</h2>
+                <button id="close-export-options-btn" class="btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>How would you like to export this report?</p>
+                <div class="export-options-grid" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button id="export-download-btn" class="landing-card"
+                        style="padding: 1.5rem; text-align: center; flex: 1; cursor: pointer; border: 1px solid #e2e8f0;">
+                        <div class="icon-box" style="margin: 0 auto 1rem auto; background-color: #f1f5f9;">
+                            <i data-lucide="download" style="color: var(--primary-color);"></i>
+                        </div>
+                        <h3>Download Excel</h3>
+                    </button>
+                    <button id="export-print-preview-btn" class="landing-card"
+                        style="padding: 1.5rem; text-align: center; flex: 1; cursor: pointer; border: 1px solid #e2e8f0;">
+                        <div class="icon-box" style="margin: 0 auto 1rem auto; background-color: #f1f5f9;">
+                            <i data-lucide="printer" style="color: var(--primary-color);"></i>
+                        </div>
+                        <h3>Print Report</h3>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Print Preview Modal -->
+    <div id="report-preview-modal" class="modal hidden" style="z-index: 10003;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i data-lucide="printer"></i> Print Preview</h2>
+                <button id="close-report-preview-btn" class="btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body"
+                style="background-color: #f8fafc; padding: 2rem; overflow-y: auto; max-height: 80vh;">
+                <!-- Printable Content -->
+                <div id="printable-report-content" class="printable-sheet">
+                    <!-- Report will be rendered here -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-report-print-btn" class="btn btn-secondary">Cancel</button>
+                <button id="confirm-report-print-btn" class="btn btn-primary">
+                    <i data-lucide="printer"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=2"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

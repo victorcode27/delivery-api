@@ -4,8 +4,11 @@
  */
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = `http://${window.location.hostname}:8000`;
 const API_ENDPOINT = `${API_BASE_URL}/reports/dispatched`;
+
+// Safety check: Log resolved API URL on startup
+console.log(`[Dispatch Report] Resolved API_BASE_URL: ${API_BASE_URL}`);
 
 // State Management
 let currentState = {
@@ -60,9 +63,12 @@ const elements = {
     resultsSummary: document.getElementById('results-summary'),  // NEW
     resultsSummaryText: document.getElementById('results-summary-text'),  // NEW
 
-    // Export
-    exportExcelBtn: document.getElementById('export-excel-btn'),
-    exportPdfBtn: document.getElementById('export-pdf-btn'),
+    // Export dropdown
+    exportDropdownBtn: document.getElementById('export-dropdown-btn'),
+    exportDropdownMenu: document.getElementById('export-dropdown-menu'),
+    exportExcelOption: document.getElementById('export-excel-option'),
+    exportPdfOption: document.getElementById('export-pdf-option'),
+    printOption: document.getElementById('print-option'),
 
     // Navigation
     backBtn: document.getElementById('back-btn'),
@@ -79,6 +85,13 @@ const elements = {
 function init() {
     setupEventListeners();
     loadInitialData();
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!elements.exportDropdownBtn.contains(e.target) && !elements.exportDropdownMenu.contains(e.target)) {
+            elements.exportDropdownMenu.classList.add('hidden');
+        }
+    });
 }
 
 /**
@@ -117,11 +130,140 @@ function setupEventListeners() {
     // Retry button
     elements.retryBtn.addEventListener('click', loadData);
 
-    // Export buttons (placeholders - show message)
-    elements.exportExcelBtn.addEventListener('click', showExportPlaceholder);
-    elements.exportPdfBtn.addEventListener('click', showExportPlaceholder);
+    // Export handlers
+    elements.exportDropdownBtn.addEventListener('click', toggleExportDropdown);
+    elements.exportExcelOption.addEventListener('click', exportToExcel);
+    elements.exportPdfOption.addEventListener('click', exportToPDF);
+    elements.printOption.addEventListener('click', printReport);
 }
 
+/**
+ * Toggle Export Dropdown
+ */
+function toggleExportDropdown() {
+    elements.exportDropdownMenu.classList.toggle('hidden');
+}
+
+/**
+ * Export to Excel
+ */
+function exportToExcel() {
+    if (!currentState.currentData || currentState.currentData.length === 0) {
+        alert('No data to export');
+        return;
+    }
+
+    toggleExportDropdown(); // Close menu
+
+    // Prepare data
+    const exportData = currentState.currentData.map(invoice => ({
+        'Invoice #': invoice.invoice_number,
+        'Order #': invoice.order_number,
+        'Manifest #': invoice.manifest_number,
+        'Customer Name': invoice.customer_name,
+        'Invoice Date': formatDate(invoice.invoice_date),
+        'Date Dispatched': formatDate(invoice.date_dispatched),
+        'Driver Name': invoice.driver,
+        'Assistant Name': invoice.assistant,
+        'Truck Reg #': invoice.reg_number,
+        'Checker Name': invoice.checker
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // Auto-size columns (simple approximation)
+    const wscols = Object.keys(exportData[0]).map(key => ({ wch: 20 }));
+    ws['!cols'] = wscols;
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Dispatch Report");
+
+    // Save file
+    const dateStr = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Dispatch_Report_${dateStr}.xlsx`);
+}
+
+/**
+ * Export to PDF
+ */
+function exportToPDF() {
+    if (!currentState.currentData || currentState.currentData.length === 0) {
+        alert('No data to export');
+        return;
+    }
+
+    toggleExportDropdown(); // Close menu
+
+    // Initialize jsPDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'portrait', // PORTRAIT as requested
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    // Header
+    const dateStr = new Date().toLocaleDateString();
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("BRD Distribution - Dispatch Report", 14, 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${dateStr}`, 14, 22);
+    doc.text(`Total Invoices: ${currentState.totalCount}`, 14, 27);
+
+    // Table Columns
+    const tableColumn = [
+        "Invoice", "Order", "Manifest", "Customer",
+        "Dispatched", "Driver", "Truck", "Checker"
+    ];
+
+    // Table Rows
+    const tableRows = currentState.currentData.map(invoice => [
+        invoice.invoice_number || '',
+        invoice.order_number || '',
+        invoice.manifest_number || '',
+        invoice.customer_name || '',
+        formatDate(invoice.date_dispatched),
+        invoice.driver || '',
+        invoice.reg_number || '',
+        invoice.checker || ''
+    ]);
+
+    // Use autoTable
+    doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 32,
+        styles: { fontSize: 7, cellPadding: 1 }, // Smaller font for portrait
+        headStyles: { fillColor: [66, 133, 244] }, // Blue header
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        theme: 'grid',
+        didDrawPage: function (data) {
+            // Footer page number
+            doc.setFontSize(8);
+            doc.text(
+                'Page ' + doc.internal.getNumberOfPages(),
+                data.settings.margin.left,
+                doc.internal.pageSize.height - 10
+            );
+        }
+    });
+
+    const fileName = `Dispatch_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+}
+
+/**
+ * Print Report
+ */
+function printReport() {
+    toggleExportDropdown(); // Close menu
+    window.print();
+}
 /**
  * Handle search input with debouncing
  */
@@ -635,12 +777,7 @@ function showTableState() {
     elements.resetFiltersBtn.disabled = false;
 }
 
-/**
- * Show export placeholder message
- */
-function showExportPlaceholder() {
-    alert('Export functionality is not yet implemented. This is a placeholder button.');
-}
+
 
 /**
  * Format date for display

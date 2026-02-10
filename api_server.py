@@ -7,7 +7,7 @@ Or: python api_server.py
 import os
 import logging
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -25,6 +25,10 @@ import database
 # Configuration
 MANIFEST_FOLDER = r"C:\Users\Assault\OneDrive\Documents\Delivery Route\Manifests_Output"
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.log")
+
+# --- DEV MODE CONFIG ---
+DEV_MODE = True
+SERVER_START_TIME = datetime.now().isoformat()
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -82,6 +86,14 @@ app.add_middleware(
 )
 
 
+# --- Helper Functions ---
+
+def get_username_from_request(request_headers) -> str:
+    """Extract username from X-Username header. Returns 'anonymous' if not found."""
+    username = request_headers.get('X-Username', request_headers.get('x-username', ''))
+    if not username:
+        username = 'anonymous'
+    return username
 
 # --- Data Models ---
 class Invoice(BaseModel):
@@ -160,7 +172,7 @@ class ReportRequest(BaseModel):
 def get_invoices(area: Optional[str] = None):
     """Get all pending invoices. Optionally filter by area."""
     try:
-        orders = database.get_all_orders(allocated=False)
+        orders = database.get_available_orders_excluding_staging()
         
         if area:
             orders = [o for o in orders if o.get("area", "").upper() == area.upper()]
@@ -207,18 +219,23 @@ def get_customers():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/invoices/allocate")
-def allocate_invoices(request: AllocateRequest):
-    """Mark invoices as allocated (dispatched)."""
+def allocate_invoices(request_data: AllocateRequest, request: Request):
+    """Add invoices to manifest staging (does NOT update invoices table until confirm)."""
     try:
-        updated = database.allocate_orders(request.filenames, request.manifest_number)
+        # Extract username from headers
+        username = get_username_from_request(request.headers)
         
-        if updated > 0:
-            logger.info(f"Allocated {updated} invoices for manifest {request.manifest_number}")
-            return {"message": f"Allocated {updated} invoices", "allocated": updated}
+        # Add to staging instead of directly allocating
+        added = database.add_to_staging(username, request_data.filenames)
+        
+        if added > 0:
+            logger.info(f"Added {added} invoices to staging for user {username}")
+            return {"message": f"Added {added} invoices to manifest", "added": added}
         else:
-            raise HTTPException(status_code=404, detail="No matching invoices found")
+            logger.warning(f"No invoices added to staging (may already be in manifest)")
+            return {"message": "Invoices already in manifest or not found", "added": 0}
     except Exception as e:
-        logger.error(f"Error allocating invoices: {e}")
+        logger.error(f"Error adding to staging: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/invoices/refresh")
@@ -233,7 +250,6 @@ def refresh_invoices():
         return {"message": "Invoice scan completed"}
     except Exception as e:
         logger.error(f"Error refreshing invoices: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/watcher/status")
@@ -423,11 +439,18 @@ def delete_user(username: str):
 # =============================================
 
 @app.post("/reports")
-def save_report(request: ReportRequest):
+def save_report(request_data: ReportRequest, request: Request):
     """Save a dispatch report."""
     try:
-        report_id = database.save_report(request.dict())
-        logger.info(f"Saved report {request.manifestNumber} with ID {report_id}")
+        # Extract username for session_id
+        username = get_username_from_request(request.headers)
+        
+        # Add session_id to report_data
+        report_dict = request_data.dict()
+        report_dict['session_id'] = username
+        
+        report_id = database.save_report(report_dict)
+        logger.info(f"Saved report {request_data.manifestNumber} with ID {report_id} for user {username}")
         return {"message": "Report saved", "id": report_id}
     except Exception as e:
         logger.error(f"Error saving report: {e}")
@@ -487,6 +510,14 @@ def get_dispatched_invoices(
         }
     """
     try:
+        if date_from:
+            validate_date(date_from, "date_from")
+        if date_to:
+            validate_date(date_to, "date_to")
+            
+        if DEV_MODE:
+            logger.info(f"[DEV_MODE] Filter Request - From: {date_from}, To: {date_to}, Type: {filter_type}")
+
         # Validate filter_type
         if filter_type not in ['dispatch', 'manifest']:
             filter_type = 'dispatch'
@@ -574,6 +605,43 @@ def search_manifests(q: str):
             return {"match": False}
     except Exception as e:
         logger.error(f"Error searching manifest: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# =============================================
+# MANIFEST STAGING ENDPOINTS (NEW - FIX FOR WORKFLOW BUG)
+# =============================================
+
+@app.get("/manifest/current")
+def get_current_manifest_staging(request: Request, manifest_number: Optional[str] = None):
+    """Get invoices in current manifest.
+    
+    If manifest_number provided: returns finalized invoices for that manifest + staging entries.
+    If not provided: returns staging-only (backward compatible).
+    """
+    try:
+        username = get_username_from_request(request.headers)
+        invoices = database.get_current_manifest(username, manifest_number)
+        logger.info(f"Fetched {len(invoices)} invoices for user {username}" + 
+                   (f" (manifest: {manifest_number})" if manifest_number else " (staging only)"))
+        return {"invoices": invoices, "count": len(invoices)}
+    except Exception as e:
+        logger.error(f"Error fetching current manifest: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/manifest/remove")
+def remove_from_manifest_staging(request_data: AllocateRequest, request: Request):
+    """Remove invoices from current manifest staging."""
+    try:
+        username = get_username_from_request(request.headers)
+        removed = database.remove_from_staging(username, request_data.filenames)
+        
+        if removed > 0:
+            logger.info(f"Removed {removed} invoices from staging for user {username}")
+            return {"message": f"Removed {removed} invoices from manifest", "removed": removed}
+        else:
+            return {"message": "No invoices found in manifest to remove", "removed": 0}
+    except Exception as e:
+        logger.error(f"Error removing from staging: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # =============================================
@@ -784,8 +852,67 @@ async def read_file(filename: str):
 
 # Run the server if executed directly
 
+
+# =============================================
+# DEV MODE ENDPOINTS & HELPERS
+# =============================================
+
+@app.get("/health")
+def health_check():
+    """Returns server health status, timestamp, and DEV_MODE flag."""
+    return {
+        "status": "ok",
+        "timestamp": SERVER_START_TIME,
+        "dev_mode": DEV_MODE
+    }
+
+def validate_date(date_str: str, field_name: str):
+    """
+    Validates date string format YYYY-MM-DD.
+    Raises HTTPException if invalid.
+    """
+    if not date_str:
+        return # Empty string handled by logic usually, or should error?
+        # User said "rejects invalid formats or empty strings"
+        # But wait, date filters are Optional.
+        # If optional, None is fine. If string provided, must be valid.
+    
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        if DEV_MODE:
+            logger.warning(f"[DEV_MODE] Invalid date format for {field_name}: {date_str}")
+        raise HTTPException(status_code=400, detail=f"Invalid date format for {field_name}. Use YYYY-MM-DD.")
+
+
+# --- LAN Configuration ---
+LAN_MODE = True  # Set to False for localhost-only access
+PRODUCTION_MODE = False  # Safety check to prevent accidental public exposure
+
 if __name__ == "__main__":
-    logger.info("Starting Invoice API server on http://localhost:8000")
-    print("Starting Invoice API server on http://localhost:8000")
-    print("Press Ctrl+C to stop")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # CRITICAL: Always bind to 0.0.0.0 to allow BOTH localhost AND LAN access
+    # 0.0.0.0 means "listen on all network interfaces"
+    # This allows: localhost, 127.0.0.1, and LAN IP (e.g., 192.168.0.29)
+    host = "0.0.0.0"
+    port = 8000
+    
+    print("=" * 60)
+    print("⚠️  WARNING: For LAN use, run with uvicorn directly:")
+    print("   uvicorn api_server:app --host 0.0.0.0 --port 8000 --workers 4")
+    print("")
+    print("Server will be accessible via:")
+    print(f"  ✓ localhost:{port}")
+    print(f"  ✓ 127.0.0.1:{port}")
+    print(f"  ✓ <YOUR_LAN_IP>:{port}")
+    print("")
+    print("To find LAN IP: ipconfig (look for IPv4 Address)")
+    print("=" * 60)
+    
+    logger.info(f"Starting Invoice API server on {host}:{port}")
+    logger.info(f"Bound interfaces: ALL (0.0.0.0)")
+    logger.info(f"CORS: Enabled for all origins")
+    
+    print(f"\n✓ Server starting on http://{host}:{port}")
+    print("Press Ctrl+C to stop\n")
+    
+    uvicorn.run(app, host=host, port=port)

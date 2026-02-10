@@ -1,0 +1,123 @@
+/* DEV MODE STYLES */
+
+#dev-mode-badge {
+    position: fixed;
+    top: 10px;
+    right: 180px;
+    /* To left of Logout/Settings */
+    background-color: #22c55e;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 10000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+#dev-mode-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+#dev-mode-badge.status-ok {
+    background-color: #22c55e;
+    /* Green */
+}
+
+#dev-mode-badge.status-restarted {
+    background-color: #3b82f6;
+    /* Blue */
+}
+
+#dev-mode-badge.status-error {
+    background-color: #ef4444;
+    /* Red */
+}
+
+/* Debug Panel */
+#dev-debug-panel {
+    position: fixed;
+    top: 50px;
+    right: 180px;
+    width: 300px;
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    z-index: 9999;
+    overflow: hidden;
+    font-family: monospace;
+    font-size: 12px;
+    border: 1px solid #334155;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    /* Hidden by default */
+    transition: all 0.2s ease-in-out;
+}
+
+#dev-debug-panel.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.debug-header {
+    background-color: #0f172a;
+    padding: 10px 15px;
+    border-bottom: 1px solid #334155;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+}
+
+.debug-content {
+    padding: 15px;
+}
+
+.debug-row {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.debug-label {
+    color: #94a3b8;
+}
+
+.debug-value {
+    color: #f8fafc;
+    font-weight: bold;
+}
+
+.debug-log {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #334155;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    margin-bottom: 4px;
+    padding: 4px;
+    background: #0f172a;
+    border-radius: 4px;
+    border-left: 2px solid #3b82f6;
+}
+
+/* Inline Warnings */
+.dev-warning-message {
+    color: #ef4444;
+    font-size: 0.85em;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}

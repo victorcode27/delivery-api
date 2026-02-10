@@ -8,11 +8,14 @@ let users = [];
 let loginIntent = null; // 'manifest' or 'report'
 let currentReportView = 'dispatched'; // 'dispatched' or 'outstanding'
 
+
 // API Configuration
-// Empty string means "use the same server I am currently on"
-// This works for localhost:8000 AND 192.168.x.x:8000
-// API Configuration
-const API_URL = "http://127.0.0.1:8000"; // Explicit Localhost URL
+// Dynamic API URL - automatically uses the hostname from browser address bar
+// Works for: localhost, LAN IP (192.168.x.x), or custom hostname (manifest.local)
+const API_URL = `http://${window.location.hostname}:8000`;
+
+// Safety check: Log resolved API URL on startup
+console.log(`[API Config] Resolved API_URL: ${API_URL}`);
 
 // Error Logger for UI
 function logError(msg) {
@@ -113,10 +116,6 @@ async function loadSettings() {
 
         console.log("Settings loaded from Server");
 
-        // RE-INIT DROPDOWNS TO SHOW NEW DATA
-        if (typeof initTruckDropdown === 'function') initTruckDropdown();
-        if (typeof initPersonnelDropdowns === 'function') initPersonnelDropdowns();
-
         // Force refresh of UI lists if function exists (script might load order dependent)
         if (typeof renderSettingsList === 'function') {
             try {
@@ -173,13 +172,21 @@ const totalWeightEl = document.getElementById('total-weight');
 const orderCountEl = document.getElementById('order-count');
 
 // Initialization
-document.addEventListener('DOMContentLoaded', () => {
-    loadSettings(); // Load settings first
-    loadState();
+document.addEventListener('DOMContentLoaded', async () => {
+    // WAIT for settings to load first (defensive against API failures)
+    try {
+        await loadSettings();
+    } catch (e) {
+        console.warn("Settings failed to load, continuing with empty defaults");
+        logError("Settings failed, continuing with empty defaults");
+    }
+
+    // Now initialize UI with loaded (or empty) settings
+    await loadState();
     setDefaultDate();
     initManifestNumber(); // Auto-generate manifest number if not set
-    initTruckDropdown(); // Initialize truck list
-    initPersonnelDropdowns(); // Initialize driver, assistant, checker dropdowns
+    initTruckDropdown(); // Initialize truck list - now has settings data
+    initPersonnelDropdowns(); // Initialize driver, assistant, checker dropdowns - now has settings data
     renderTable();
     setupEventListeners();
 
@@ -191,6 +198,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Landing Page
     initUsers();
     showLandingPage();
+
+    // Initialize DEV_MODE if available
+    if (window.DevMode) {
+        window.DevMode.init();
+    }
 });
 
 // User Management Initialization
@@ -291,26 +303,36 @@ function handleTruckChange() {
 }
 
 function setupEventListeners() {
-    document.getElementById('add-order-btn').addEventListener('click', addOrder);
-    document.getElementById('reset-btn').addEventListener('click', resetSystem);
-    document.getElementById('print-btn').addEventListener('click', showPreviewModal);
-    document.getElementById('view-reports-btn').addEventListener('click', showReports);
-    document.getElementById('close-modal-btn').addEventListener('click', hideReports);
-    document.getElementById('filter-btn').addEventListener('click', filterReports);
-    document.getElementById('export-report-btn').addEventListener('click', showExportOptions);
-    // document.getElementById('clear-history-btn').addEventListener('click', clearReportHistory);
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    try {
+        document.getElementById('add-order-btn').addEventListener('click', addOrder);
+        document.getElementById('reset-btn').addEventListener('click', resetSystem);
+        document.getElementById('print-btn').addEventListener('click', showPreviewModal);
+        document.getElementById('view-reports-btn').addEventListener('click', showReports);
+        document.getElementById('close-modal-btn').addEventListener('click', hideReports);
+        document.getElementById('filter-btn').addEventListener('click', filterReports);
+        document.getElementById('export-report-btn').addEventListener('click', showExportOptions);
+        // document.getElementById('clear-history-btn').addEventListener('click', clearReportHistory);
+        document.getElementById('logout-btn').addEventListener('click', handleLogout);
 
-    // New navigation buttons
-    document.getElementById('dispatch-report-btn').addEventListener('click', () => {
-        window.location.href = 'dispatch_report.html';
-    });
-    document.getElementById('outstanding-orders-btn').addEventListener('click', () => {
-        window.location.href = 'outstanding_orders.html';
-    });
+        // New navigation buttons
+        document.getElementById('dispatch-report-btn').addEventListener('click', () => {
+            window.location.href = 'dispatch_report.html';
+        });
+        document.getElementById('outstanding-orders-btn').addEventListener('click', () => {
+            window.location.href = 'outstanding_orders.html';
+        });
 
-    // Call secondary listeners
-    initSecondaryListeners();
+        // Call secondary listeners
+        initSecondaryListeners();
+    } catch (error) {
+        console.error("Error in setupEventListeners:", error);
+        // Try to continue with secondary listeners even if primary setup fails
+        try {
+            initSecondaryListeners();
+        } catch (e) {
+            console.error("Error in initSecondaryListeners:", e);
+        }
+    }
 }
 
 // ... (previous functions) ...
@@ -635,11 +657,32 @@ function addOrder() {
     renderTable();
 }
 
-function removeOrder(id) {
+async function removeOrder(id) {
     if (confirm('Remove this order?')) {
-        orders = orders.filter(o => o.id !== id);
-        saveState();
-        renderTable();
+        // Find the order to get its filename
+        const order = orders.find(o => o.id === id);
+        if (!order) return;
+
+        // Call API to remove from staging
+        try {
+            const response = await fetch(`${API_URL}/manifest/remove`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Username': currentUser || 'anonymous'
+                },
+                body: JSON.stringify({ filenames: [order.invoice] })
+            });
+
+            if (!response.ok) {
+                console.warn('Could not remove invoice from staging');
+            }
+        } catch (error) {
+            console.error('Error removing from staging:', error);
+        }
+
+        // Reload manifest from API to refresh the list
+        await renderTable();
     }
 }
 
@@ -658,7 +701,10 @@ function clearOrderInputs() {
     orderInputs.invoice.focus();
 }
 
-function renderTable() {
+async function renderTable() {
+    // Reload from API first to ensure we have latest data
+    await loadCurrentManifestFromAPI();
+
     tableBody.innerHTML = '';
     let tSku = 0, tValue = 0, tWeight = 0;
 
@@ -718,9 +764,9 @@ function resetSystem() {
 
 // Persistence
 function saveState() {
+    // Save form header data only (not orders - those come from API)
     const state = {
-        header: {},
-        orders: orders
+        header: {}
     };
     Object.keys(formInputs).forEach(key => {
         state.header[key] = formInputs[key].value;
@@ -728,11 +774,11 @@ function saveState() {
     localStorage.setItem('manifestAppState', JSON.stringify(state));
 }
 
-function loadState() {
+async function loadState() {
+    // Load header data from localStorage
     const saved = localStorage.getItem('manifestAppState');
     if (saved) {
         const state = JSON.parse(saved);
-        orders = state.orders || [];
         if (state.header) {
             Object.keys(formInputs).forEach(key => {
                 if (state.header[key]) formInputs[key].value = state.header[key];
@@ -740,9 +786,58 @@ function loadState() {
         }
     }
 
+    // Load current manifest from API (replaces localStorage orders)
+    await loadCurrentManifestFromAPI();
+
     const savedReports = localStorage.getItem('manifestReports');
     if (savedReports) {
         reports = JSON.parse(savedReports);
+    }
+}
+
+// NEW: Load current manifest from staging API
+async function loadCurrentManifestFromAPI() {
+    // CLEAR FIRST - prevent showing stale data if API fails
+    orders = [];
+
+    try {
+        const response = await fetch(`${API_URL}/manifest/current`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Username': currentUser || 'anonymous'
+            }
+        });
+
+        if (!response.ok) {
+            console.warn('Could not load current manifest from API');
+            // orders already cleared above
+            return;
+        }
+
+        const data = await response.json();
+        const invoices = data.invoices || [];
+
+        // Convert API invoice format to local orders format
+        orders = invoices.map(inv => ({
+            id: inv.id || Date.now() + Math.random(),
+            invoice: inv.invoice_number || inv.filename,
+            orderNumber: inv.order_number || '',
+            customerNumber: inv.customer_number || 'N/A',
+            invoiceDate: inv.invoice_date || 'N/A',
+            customer: inv.customer_name,
+            area: inv.area || 'UNKNOWN',
+            sku: 0, // Default
+            value: parseFloat(String(inv.total_value).replace(/[^0-9.-]/g, '')) || 0,
+            weight: 0, // Default
+            volume: 0, // Default
+            timestamp: inv.date_processed || new Date().toISOString()
+        }));
+
+        console.log(`Loaded ${orders.length} invoices from current manifest`);
+    } catch (error) {
+        console.error('Error loading current manifest:', error);
+        // orders already cleared above
     }
 }
 
@@ -1534,7 +1629,7 @@ function updateSelectedCount() {
     });
 }
 
-function addSelectedInvoices() {
+async function addSelectedInvoices() {
     const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
 
     if (selectedCheckboxes.length === 0) {
@@ -1542,51 +1637,21 @@ function addSelectedInvoices() {
         return;
     }
 
-    const selectedArea = null;
     const filenamesToAllocate = [];
-
-    // Track existing invoice numbers to prevent duplicates
-    const existingInvoices = new Set(orders.map(order => order.invoice));
-
-    let addedCount = 0;
-    let skippedCount = 0;
 
     selectedCheckboxes.forEach(cb => {
         const index = parseInt(cb.dataset.index);
         const inv = availableInvoices[index];
-        const invoiceNumber = inv.invoice_number || inv.filename;
-
-        // Duplicate prevention: Check if invoice already exists in manifest
-        if (existingInvoices.has(invoiceNumber)) {
-            console.log(`Skipping duplicate invoice: ${invoiceNumber}`);
-            skippedCount++;
-            return; // Skip this invoice
-        }
-
-        // Create order object matching existing structure
-        const order = {
-            id: Date.now() + Math.random(), // Unique ID
-            invoice: invoiceNumber,
-            orderNumber: inv.order_number || '', // Added Order Number
-            customerNumber: inv.customer_number || 'N/A', // Added Customer Number
-            invoiceDate: inv.invoice_date || 'N/A', // Added Invoice Date
-            customer: inv.customer_name,
-            area: selectedArea || inv.area || 'UNKNOWN',
-            sku: 0, // Default, user can edit
-            value: parseFloat(inv.total_value.replace(/[^0-9.-]/g, '')) || 0,
-            weight: 0, // Default
-            volume: 0, // Default
-            timestamp: new Date().toISOString()
-        };
-
-        orders.push(order);
-        existingInvoices.add(invoiceNumber); // Update the set for subsequent iterations
         filenamesToAllocate.push(inv.filename);
-        addedCount++;
     });
 
-    saveState();
-    renderTable();
+    // Call API to add to staging
+    if (filenamesToAllocate.length > 0) {
+        await allocateInvoices(filenamesToAllocate);
+    }
+
+    // Reload manifest from API to get updated list
+    await renderTable();
 
     // Uncheck all selected checkboxes after adding
     selectedCheckboxes.forEach(cb => {
@@ -1600,27 +1665,19 @@ function addSelectedInvoices() {
     // Update the selected count display
     updateSelectedCount();
 
-    // DO NOT close modal - keep it open for more selections
-    // closeInvoiceModal(); // REMOVED
-
-    // Optionally allocate (remove from pending list)
-    if (filenamesToAllocate.length > 0) {
-        allocateInvoices(filenamesToAllocate);
-    }
-
     // Enhanced feedback message
-    let message = `Added ${addedCount} invoice${addedCount !== 1 ? 's' : ''} to manifest.`;
-    if (skippedCount > 0) {
-        message += `\n${skippedCount} duplicate${skippedCount !== 1 ? 's' : ''} skipped.`;
-    }
-    alert(message);
+    alert(`Added ${filenamesToAllocate.length} invoice${filenamesToAllocate.length !== 1 ? 's' : ''} to manifest.`);
 }
+
 
 async function allocateInvoices(filenames) {
     try {
         const response = await fetch(`${API_URL}/invoices/allocate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Username': currentUser || 'anonymous'
+            },
             body: JSON.stringify({ filenames: filenames })
         });
 
@@ -2941,6 +2998,10 @@ function hideLandingPage() {
     const landing = document.getElementById('landing-overlay');
     if (landing) {
         landing.classList.add('hidden');
+        // Remove inline styles that override hidden class
+        landing.style.opacity = '';
+        landing.style.pointerEvents = '';
+        landing.style.display = 'none'; // Force hide
     }
 }
 
@@ -3013,7 +3074,7 @@ async function handleLogin() {
 }
 
 async function finalizeLogin(user) {
-    currentUser = user;
+    currentUser = user.username;  // FIX: Store username string, not object
     // Derive role from user object
     if (user.isAdmin) {
         currentUserRole = 'admin';
@@ -3051,11 +3112,11 @@ async function finalizeLogin(user) {
 }
 
 function applyPermissions() {
-    const user = currentUser;
-    if (!user) return;
+    // currentUser is now just a string (username), not an object
+    // Use currentUserRole instead
+    if (!currentUser) return;
 
-    const isAdmin = user.isAdmin;
-    const canManifest = user.canManifest || isAdmin;
+    console.log("Applying permissions - User:", currentUser, "Role:", currentUserRole);
 
     // Elements to toggle
     const formSections = document.querySelectorAll('.form-section');
@@ -3064,34 +3125,18 @@ function applyPermissions() {
     const resetBtn = document.getElementById('reset-btn');
     const usersTabKey = document.getElementById('tab-btn-users');
 
-    if (canManifest) {
-        formSections.forEach(el => el.classList.remove('guest-hidden'));
-        if (previewSection) previewSection.classList.remove('guest-hidden');
-        if (resetBtn) resetBtn.classList.remove('guest-hidden');
-    } else {
-        formSections.forEach(el => el.classList.add('guest-hidden'));
-        if (previewSection) previewSection.classList.add('guest-hidden');
-        if (resetBtn) resetBtn.classList.add('guest-hidden');
-    }
+    // All logged-in users can see manifest UI
+    formSections.forEach(el => el.classList.remove('guest-hidden'));
+    if (previewSection) previewSection.classList.remove('guest-hidden');
+    if (resetBtn) resetBtn.classList.remove('guest-hidden');
 
-    // Settings Button - maybe allow for changing own password later? 
-    // For now, only Admins see Settings. Or maybe allow Users to see settings but only view?
-    // User requested "get through this system on to be able to have settings".
-    // Let's hide Settings for non-Admins for simplicity as per common request, 
-    // unless 'canManifest' implies some settings control. 
-    // Let's stick to: Only Admin can see Settings Button.
-
-    if (isAdmin) {
+    // Settings Button - Admin only
+    if (currentUserRole === 'admin') {
         if (settingsBtn) settingsBtn.classList.remove('guest-hidden');
         if (usersTabKey) usersTabKey.style.display = 'block';
     } else {
         if (settingsBtn) settingsBtn.classList.add('guest-hidden');
-        // Just in case it's shown, hide the Users tab
         if (usersTabKey) usersTabKey.style.display = 'none';
-
-        // If we want to allow non-admins to see settings for Drivers etc, we would remove the 'guest-hidden' toggle on settingsBtn
-        // But keep Users tab hidden.
-        // For now, Strict Admin for Settings.
     }
 }
 

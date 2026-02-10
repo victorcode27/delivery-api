@@ -132,6 +132,23 @@ def init_db():
         )
     ''')
     
+    # Manifest Staging table (FIX: Prevents invoices from disappearing)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS manifest_staging (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
+            invoice_id INTEGER NOT NULL,
+            added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (invoice_id) REFERENCES orders(id)
+        )
+    ''')
+    
+    # Create index for faster staging queries
+    cursor.execute('''
+        CREATE INDEX IF NOT EXISTS idx_staging_session 
+        ON manifest_staging(session_id)
+    ''')
+    
     conn.commit()
     conn.close()
     print(f"Database initialized at: {DB_PATH}")
@@ -342,6 +359,171 @@ def deallocate_orders(filenames: List[str]) -> int:
     conn.close()
     return updated
 
+def get_available_orders_excluding_staging():
+    """Return orders not allocated and not present in manifest staging."""
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM orders o
+        WHERE o.id NOT IN (
+            SELECT invoice_id FROM manifest_staging
+        )
+        AND o.type = 'INVOICE'
+        AND (
+            o.manifest_number IS NULL
+            OR o.manifest_number NOT IN (
+                SELECT DISTINCT manifest_number FROM reports
+            )
+        )
+        ORDER BY o.date_processed DESC
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+# =============================================
+# MANIFEST STAGING FUNCTIONS (FIX FOR WORKFLOW BUG)
+# =============================================
+
+def add_to_staging(session_id: str, filenames: List[str]) -> int:
+    """Add invoices to manifest staging. Invoices remain AVAILABLE until confirmed. Returns count added."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    if not filenames or not session_id:
+        return 0
+    
+    # Get invoice IDs from filenames
+    placeholders = ','.join(['?' for _ in filenames])
+    cursor.execute(f'''
+        SELECT id, filename FROM orders 
+        WHERE filename IN ({placeholders})
+    ''', filenames)
+    
+    invoice_rows = cursor.fetchall()
+    added_count = 0
+    
+    for row in invoice_rows:
+        invoice_id = row['id']
+        # Check if already in staging for this session
+        cursor.execute('''
+            SELECT id FROM manifest_staging 
+            WHERE session_id = ? AND invoice_id = ?
+        ''', (session_id, invoice_id))
+        
+        if cursor.fetchone() is None:
+            # Not in staging, add it
+            cursor.execute('''
+                INSERT INTO manifest_staging (session_id, invoice_id)
+                VALUES (?, ?)
+            ''', (session_id, invoice_id))
+            added_count += 1
+    
+    conn.commit()
+    conn.close()
+    return added_count
+
+def get_current_manifest(session_id: str, manifest_number: str = None) -> List[Dict]:
+    """Get all invoices for the current manifest.
+    
+    Returns:
+    - Finalized invoices (orders.manifest_number = manifest_number AND is_allocated=1)
+    - Plus in-progress staging entries for this session (that aren't already finalized)
+    - Only type='INVOICE' rows, no duplicates
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    if manifest_number:
+        # Return finalized invoices for this manifest UNION with NEW staging entries only
+        cursor.execute('''
+            SELECT o.* FROM orders o
+            WHERE o.manifest_number = ? AND o.is_allocated = 1 AND o.type = 'INVOICE'
+            UNION
+            SELECT o.* FROM orders o
+            INNER JOIN manifest_staging ms ON ms.invoice_id = o.id
+            WHERE ms.session_id = ? 
+            AND o.type = 'INVOICE'
+            AND o.is_allocated = 0
+            AND (o.manifest_number IS NULL OR o.manifest_number != ?)
+            ORDER BY date_processed DESC
+        ''', (manifest_number, session_id, manifest_number))
+    else:
+        # Staging only (backward compatible) - exclude already allocated
+        cursor.execute('''
+            SELECT o.* 
+            FROM orders o
+            INNER JOIN manifest_staging ms ON ms.invoice_id = o.id
+            WHERE ms.session_id = ? 
+            AND o.type = 'INVOICE'
+            AND o.is_allocated = 0
+            ORDER BY ms.added_at ASC
+        ''', (session_id,))
+    
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def remove_from_staging(session_id: str, filenames: List[str]) -> int:
+    """Remove invoices from manifest staging. Makes them instantly available again. Returns count removed."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    if not filenames or not session_id:
+        return 0
+    
+    # Get invoice IDs from filenames
+    placeholders = ','.join(['?' for _ in filenames])
+    cursor.execute(f'''
+        SELECT id FROM orders 
+        WHERE filename IN ({placeholders})
+    ''', filenames)
+    
+    invoice_ids = [row['id'] for row in cursor.fetchall()]
+    
+    if not invoice_ids:
+        conn.close()
+        return 0
+    
+    # Delete from staging
+    id_placeholders = ','.join(['?' for _ in invoice_ids])
+    cursor.execute(f'''
+        DELETE FROM manifest_staging
+        WHERE session_id = ? AND invoice_id IN ({id_placeholders})
+    ''', [session_id] + invoice_ids)
+    
+    removed = cursor.rowcount
+    
+    # FIX: Clear allocation flags for removed invoices
+    # BUT ONLY if they're not in finalized reports (to preserve dispatch history)
+    cursor.execute(f'''
+        UPDATE orders
+        SET is_allocated = 0, allocated_date = NULL, manifest_number = NULL
+        WHERE id IN ({id_placeholders})
+        AND (manifest_number IS NULL OR manifest_number NOT IN (
+            SELECT DISTINCT manifest_number FROM reports
+        ))
+    ''', invoice_ids)
+    
+    conn.commit()
+    conn.close()
+    return removed
+
+def clear_staging(session_id: str) -> int:
+    """Clear all staging entries for a session. Returns count cleared."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('DELETE FROM manifest_staging WHERE session_id = ?', (session_id,))
+    cleared = cursor.rowcount
+    
+    conn.commit()
+    conn.close()
+    return cleared
+
 # =============================================
 # USER FUNCTIONS
 # =============================================
@@ -489,6 +671,35 @@ def save_report(report_data: Dict) -> int:
             invoice.get('weight', 0),
             invoice.get('customerNumber') or invoice.get('customer_number', 'N/A')
         ))
+    
+    # FIX: Finalize invoices from staging if session_id is provided
+    session_id = report_data.get('session_id')
+    if session_id:
+        # Get all invoice filenames from staging for this session
+        cursor.execute('''
+            SELECT o.filename
+            FROM orders o
+            INNER JOIN manifest_staging ms ON ms.invoice_id = o.id
+            WHERE ms.session_id = ?
+        ''', (session_id,))
+        
+        staged_filenames = [row['filename'] for row in cursor.fetchall()]
+        
+        if staged_filenames:
+            # Update invoices to DISPATCHED
+            placeholders = ','.join(['?' for _ in staged_filenames])
+            allocated_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            cursor.execute(f'''
+                UPDATE orders
+                SET is_allocated = 1, allocated_date = ?, manifest_number = ?
+                WHERE filename IN ({placeholders})
+            ''', [allocated_date, report_data.get('manifestNumber')] + staged_filenames)
+            
+            print(f"Finalized {cursor.rowcount} invoices from staging for session: {session_id}")
+        
+        # Clear staging for this session
+        cursor.execute('DELETE FROM manifest_staging WHERE session_id = ?', (session_id,))
+        print(f"Cleared staging for session: {session_id}")
     
     conn.commit()
     conn.close()

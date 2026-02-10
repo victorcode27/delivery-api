@@ -8,8 +8,11 @@
  */
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = `http://${window.location.hostname}:8000`;
 const API_ENDPOINT = `${API_BASE_URL}/reports/outstanding`;
+
+// Safety check: Log resolved API URL on startup
+console.log(`[Outstanding Orders] Resolved API_BASE_URL: ${API_BASE_URL}`);
 
 // State Management
 let allOrders = []; // All orders from API

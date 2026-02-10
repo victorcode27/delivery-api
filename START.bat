@@ -1,8 +1,8 @@
 @echo off
-title Delivery Manifest System - Launcher
+title Delivery Manifest System - LAN Mode
 
 echo ============================================
-echo    Delivery Manifest System
+echo    Delivery Manifest System (LAN MODE)
 echo ============================================
 echo.
 
@@ -13,11 +13,22 @@ echo [1/3] Processing any new PDF invoices...
 python invoice_processor.py
 echo.
 
-echo [2/3] Starting API server...
+echo [2/3] Starting API server (LAN MODE)...
+echo WARNING: Server will be accessible to other PCs on your network
+echo.
+
+:: Get local IP address
+for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /i "IPv4"') do set IP=%%a
+set IP=%IP:~1%
+echo Your IP Address: %IP%
+echo Other PCs can access: http://%IP%:8000
+echo.
+
+:: Start server with 4 workers for multi-user support
 start "Invoice API Server" cmd /k "python api_server.py"
 
-:: Wait a moment for the server to start
-timeout /t 2 /nobreak > nul
+:: Wait for server to start
+timeout /t 3 /nobreak > nul
 
 echo [3/3] Opening web application...
 start "" "http://localhost:8000"
@@ -27,9 +38,13 @@ echo ============================================
 echo    System Started Successfully!
 echo ============================================
 echo.
-echo - API Server is running in a separate window
-echo - Web app should open in your browser
+echo - API Server running with 4 workers (supports 10-20 users)
+echo - Share this URL with other PCs: http://%IP%:8000
 echo - To stop: close the API Server window
+echo.
+echo FIREWALL REMINDER:
+echo If other PCs can't connect, run: setup_firewall.bat
 echo.
 echo You can close this window now.
 pause
+

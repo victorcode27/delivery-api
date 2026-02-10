@@ -9,8 +9,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- ExcelJS Library for Excel Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <!-- SheetJS Library for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF-AutoTable for PDF Tables -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Custom Styles -->
@@ -29,11 +33,11 @@
                     <span class="subtitle">Dispatch Report</span>
                 </div>
             </div>
-            <div class="header-actions">
-                <button id="back-btn" class="btn btn-secondary">
+            <div class="report-header-actions">
+                <button id="back-btn" class="report-btn report-btn-secondary">
                     <i data-lucide="arrow-left"></i> Back to Main
                 </button>
-                <button id="outstanding-btn" class="btn btn-secondary">
+                <button id="outstanding-btn" class="report-btn report-btn-secondary">
                     <i data-lucide="alert-circle"></i> Outstanding Orders
                 </button>
             </div>
@@ -71,16 +75,16 @@
                             <i data-lucide="search"></i>
                             <input type="text" id="search-input"
                                 placeholder="Search invoice, order, manifest, customer, driver, truck, checker...">
-                            <button id="clear-search-btn" class="btn-icon clear-search hidden">
+                            <button id="clear-search-btn" class="report-btn-icon clear-search hidden">
                                 <i data-lucide="x"></i>
                             </button>
                         </div>
                     </div>
                     <div class="form-group button-group">
-                        <button id="apply-filters-btn" class="btn btn-primary">
+                        <button id="apply-filters-btn" class="report-btn report-btn-primary">
                             <i data-lucide="search"></i> Apply Filters
                         </button>
-                        <button id="reset-filters-btn" class="btn btn-secondary">
+                        <button id="reset-filters-btn" class="report-btn report-btn-secondary">
                             <i data-lucide="rotate-ccw"></i> Reset
                         </button>
                     </div>
@@ -91,14 +95,25 @@
             <section class="card results-section">
                 <div class="section-header">
                     <h2>Dispatched Invoices</h2>
-                    <div class="header-actions">
+                    <div class="report-header-actions">
                         <span id="results-count" class="results-count">Loading...</span>
-                        <button id="export-excel-btn" class="btn btn-success" disabled>
-                            <i data-lucide="file-spreadsheet"></i> Export to Excel
-                        </button>
-                        <button id="export-pdf-btn" class="btn btn-secondary" disabled>
-                            <i data-lucide="file-text"></i> Export to PDF
-                        </button>
+                        <div class="export-dropdown">
+                            <button id="export-dropdown-btn" class="report-btn report-btn-primary">
+                                <i data-lucide="download"></i> 📥 Export Options
+                                <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                            </button>
+                            <div id="export-dropdown-menu" class="export-dropdown-menu hidden">
+                                <button id="export-excel-option" class="dropdown-item">
+                                    <i data-lucide="file-spreadsheet"></i> Export to Excel
+                                </button>
+                                <button id="export-pdf-option" class="dropdown-item">
+                                    <i data-lucide="file-text"></i> Export to PDF
+                                </button>
+                                <button id="print-option" class="dropdown-item">
+                                    <i data-lucide="printer"></i> Print Report
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -120,7 +135,7 @@
                     <i data-lucide="alert-triangle"></i>
                     <h3>Error Loading Data</h3>
                     <p id="error-message"></p>
-                    <button id="retry-btn" class="btn btn-primary">
+                    <button id="retry-btn" class="report-btn report-btn-primary">
                         <i data-lucide="refresh-cw"></i> Retry
                     </button>
                 </div>
@@ -192,19 +207,19 @@
                         <span id="pagination-info-text">Showing 1-50 of 100</span>
                     </div>
                     <div class="pagination-controls">
-                        <button id="first-page-btn" class="btn btn-icon" disabled>
+                        <button id="first-page-btn" class="report-btn report-btn-icon" disabled>
                             <i data-lucide="chevrons-left"></i>
                         </button>
-                        <button id="prev-page-btn" class="btn btn-icon" disabled>
+                        <button id="prev-page-btn" class="report-btn report-btn-icon" disabled>
                             <i data-lucide="chevron-left"></i>
                         </button>
                         <div id="page-numbers" class="page-numbers">
                             <!-- Page numbers will be inserted here -->
                         </div>
-                        <button id="next-page-btn" class="btn btn-icon">
+                        <button id="next-page-btn" class="report-btn report-btn-icon">
                             <i data-lucide="chevron-right"></i>
                         </button>
-                        <button id="last-page-btn" class="btn btn-icon">
+                        <button id="last-page-btn" class="report-btn report-btn-icon">
                             <i data-lucide="chevrons-right"></i>
                         </button>
                     </div>

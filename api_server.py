@@ -24,6 +24,7 @@ import database
 
 # Configuration
 MANIFEST_FOLDER = r"C:\Users\Assault\OneDrive\Documents\Delivery Route\Manifests_Output"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.log")
 
 # --- DEV MODE CONFIG ---
@@ -839,13 +840,18 @@ from fastapi.responses import FileResponse
 
 @app.get("/")
 async def read_index():
-    return FileResponse("index.html")
+    index_path = os.path.join(BASE_DIR, "index.html")
+    return FileResponse(index_path)
 
 # Also need to serve style.css, script.js, logo.png directly if they are requested at /style.css etc.
 # Catch-all for files in the root directory (only if no other route matches)
 @app.get("/{filename}")
 async def read_file(filename: str):
-    file_path = os.path.join(".", filename)
+    # Security: Prevent directory traversal
+    if ".." in filename or filename.startswith("/") or filename.startswith("\\\\"):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    
+    file_path = os.path.join(BASE_DIR, filename)
     if os.path.isfile(file_path):
         return FileResponse(file_path)
     raise HTTPException(status_code=404, detail="File not found")
@@ -897,13 +903,13 @@ if __name__ == "__main__":
     port = 8000
     
     print("=" * 60)
-    print("⚠️  WARNING: For LAN use, run with uvicorn directly:")
+    print("[!] WARNING: For LAN use, run with uvicorn directly:")
     print("   uvicorn api_server:app --host 0.0.0.0 --port 8000 --workers 4")
     print("")
     print("Server will be accessible via:")
-    print(f"  ✓ localhost:{port}")
-    print(f"  ✓ 127.0.0.1:{port}")
-    print(f"  ✓ <YOUR_LAN_IP>:{port}")
+    print(f"  [+] localhost:{port}")
+    print(f"  [+] 127.0.0.1:{port}")
+    print(f"  [+] <YOUR_LAN_IP>:{port}")
     print("")
     print("To find LAN IP: ipconfig (look for IPv4 Address)")
     print("=" * 60)
@@ -912,7 +918,7 @@ if __name__ == "__main__":
     logger.info(f"Bound interfaces: ALL (0.0.0.0)")
     logger.info(f"CORS: Enabled for all origins")
     
-    print(f"\n✓ Server starting on http://{host}:{port}")
+    print(f"\n[OK] Server starting on http://{host}:{port}")
     print("Press Ctrl+C to stop\n")
     
     uvicorn.run(app, host=host, port=port)

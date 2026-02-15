@@ -1,5 +1,11 @@
 __pycache__/
 *.log
+*.db
+Manifests_Output/
 node_modules/
 .env
 .vscode/
+backups/
+venv/
+env/
+.DS_Store

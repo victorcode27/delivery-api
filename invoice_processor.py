@@ -20,6 +20,8 @@ except ImportError:
 
 # Import database module
 import database
+from database import get_session
+from sqlalchemy import text
 
 # --- CONFIGURATION ---
 # INPUT_FOLDER = r"C:\Users\Assault\OneDrive\Documents\Delivery Route\Invoices_Input"  # Local folder
@@ -295,28 +297,27 @@ def main():
     
     # --- AUTO-CLEANUP: Remove records with verified BAD data so they can be re-scanned ---
     try:
-        conn = database.get_connection()
-        cursor = conn.cursor()
-        bad_values = ["USD", "ZIG", "ZWG", "LOIUSE", "LOUISE"]
-        placeholders = ','.join(['?' for _ in bad_values])
-        
-        # Delete orders where order_number is in the bad list
-        cursor.execute(f"DELETE FROM orders WHERE order_number IN ({placeholders})", bad_values)
-        deleted_count = cursor.rowcount
-        if deleted_count > 0:
-            logger.info(f"Cleaned up {deleted_count} records with bad Order Numbers (USD/Names). They will be re-scanned.")
-        conn.commit()
+        with get_session() as db:
+            bad_values = ["USD", "ZIG", "ZWG", "LOIUSE", "LOUISE"]
+            
+            # Build named parameters for dynamic IN clause
+            params = {f'bad_{i}': val for i, val in enumerate(bad_values)}
+            placeholders = ','.join([f':bad_{i}' for i in range(len(bad_values))])
+            
+            # Delete orders where order_number is in the bad list
+            result = db.execute(text(f"DELETE FROM orders WHERE order_number IN ({placeholders})"), params)
+            deleted_count = result.rowcount
+            if deleted_count > 0:
+                logger.info(f"Cleaned up {deleted_count} records with bad Order Numbers (USD/Names). They will be re-scanned.")
+            db.commit()
     except Exception as e:
         logger.error(f"Error during auto-cleanup: {e}")
-    finally:
-         if 'conn' in locals(): conn.close()
     
     # Get already processed filenames from database (including Credit Notes)
     # We fetch ALL orders to avoid re-processing anything
-    cursor = database.get_connection().cursor()
-    cursor.execute("SELECT filename FROM orders")
-    processed_filenames = {row[0] for row in cursor.fetchall()}
-    cursor.connection.close()
+    with get_session() as db:
+        rows = db.execute(text("SELECT filename FROM orders")).mappings().all()
+        processed_filenames = {row['filename'] for row in rows}
     
     pdf_files = glob.glob(os.path.join(INPUT_FOLDER, "*.pdf"))
     

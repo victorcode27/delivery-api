@@ -9,9 +9,17 @@ import json
 from datetime import datetime
 from typing import List, Dict, Optional
 import hashlib
+from db_config import SessionLocal
 
 # Database file path (same directory as this script)
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "delivery.db")
+
+def get_session():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def get_connection():
     """Get a database connection with row factory for dict-like access."""

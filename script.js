@@ -1,14 +1,10 @@
-(function() {
-    // Sample content of the script.js
+// Updated script.js
 
-    // Fetch call using relative paths
-    fetch('/api/some-endpoint')
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-        })
-        .catch(error => console.error('Error:', error));
+// Example of relative fetch calls
 
-    // Other code...
+fetch('/api/resource')
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
 
-})();
+// Further logic based on relative paths would be added here
